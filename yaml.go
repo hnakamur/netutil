@@ -30,6 +30,15 @@ func (i *IP) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// MarshalYAML marshal an IP address to string.
+func (i IP) MarshalYAML() (interface{}, error) {
+	if i == nil {
+		return nil, nil
+	} else {
+		return net.IP(i).String(), nil
+	}
+}
+
 // UnmarshalYAML unmarshal an CIDR address string from YAML.
 func (i *IPAndNet) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	var s string
@@ -45,6 +54,16 @@ func (i *IPAndNet) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		*i = *ipAndNet
 	}
 	return nil
+}
+
+// MarshalYAML marshal an IP address and network to string.
+func (i IPAndNet) MarshalYAML() (interface{}, error) {
+	if i.IP == nil && i.IPNet == nil {
+		return nil, nil
+	} else {
+		ipNet := net.IPNet{IP: i.IP, Mask: i.IPNet.Mask}
+		return ipNet.String(), nil
+	}
 }
 
 // ParseIP parses s as an IP address using net.ParseIP(),

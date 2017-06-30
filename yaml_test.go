@@ -186,6 +186,91 @@ func TestIP_UnmarshalYAML(t *testing.T) {
 	}
 }
 
+func TestIP_MarshalYAML(t *testing.T) {
+	testCases := []struct {
+		ip       net.IP
+		wantYAML string
+		wantErr  bool
+	}{
+		{net.IPv4(192, 168, 0, 1).To4(), "addr: 192.168.0.1\n", false},
+		{net.ParseIP("fe80::fc54:ff:febb:e3f"), "addr: fe80::fc54:ff:febb:e3f\n", false},
+	}
+
+	type config struct {
+		Addr IP `yaml:"addr"`
+	}
+	for _, tc := range testCases {
+		cfg := &config{Addr: IP(tc.ip)}
+		data, err := yaml.Marshal(&cfg)
+		if err != nil {
+			if !tc.wantErr {
+				t.Errorf("ip=%+v, got an error, want no error", tc.ip)
+			}
+		} else {
+			if tc.wantErr {
+				t.Errorf("ip=%+v, got no error, want an error", tc.ip)
+			} else {
+				gotYAML := string(data)
+				if gotYAML != tc.wantYAML {
+					t.Errorf("ip=%+v, gotYAML=%q, wantYAML=%q", tc.ip, gotYAML, tc.wantYAML)
+				}
+			}
+		}
+	}
+}
+
+func TestIPAndNet_MarshalYAML(t *testing.T) {
+	testCases := []struct {
+		ipAndNet *IPAndNet
+		wantYAML string
+		wantErr  bool
+	}{
+		{
+			ipAndNet: &IPAndNet{
+				IP:    ParseIP("192.168.0.1"),
+				IPNet: &net.IPNet{IP: ParseIP("192.168.0.0"), Mask: net.CIDRMask(24, 32)},
+			},
+			wantYAML: "addr: 192.168.0.1/24\n",
+			wantErr:  false,
+		},
+		{
+			ipAndNet: &IPAndNet{
+				IP:    ParseIP("fe80::fc54:ff:febb:e3f"),
+				IPNet: &net.IPNet{IP: ParseIP("fe80::0"), Mask: net.CIDRMask(64, 128)},
+			},
+			wantYAML: "addr: fe80::fc54:ff:febb:e3f/64\n",
+			wantErr:  false,
+		},
+		{
+			ipAndNet: &IPAndNet{},
+			wantYAML: "addr: null\n",
+			wantErr:  false,
+		},
+	}
+
+	type config struct {
+		Addr *IPAndNet `yaml:"addr"`
+	}
+	for _, tc := range testCases {
+		cfg := &config{Addr: tc.ipAndNet}
+		data, err := yaml.Marshal(&cfg)
+		if err != nil {
+			if !tc.wantErr {
+				t.Errorf("ipAndNet=%+v, got an error, want no error", tc.ipAndNet)
+			}
+		} else {
+			if tc.wantErr {
+				t.Errorf("ipAndNet=%+v, got no error, want an error", tc.ipAndNet)
+			} else {
+				gotYAML := string(data)
+				if gotYAML != tc.wantYAML {
+					t.Errorf("ipAndNet=%+v, gotYAML=%q, wantYAML=%q", tc.ipAndNet, gotYAML, tc.wantYAML)
+				}
+			}
+		}
+	}
+}
+
 func TestIPAndNet_UnmarshalYAML(t *testing.T) {
 	t.Run("pointer", func(t *testing.T) {
 		testCases := []struct {
