@@ -187,87 +187,174 @@ func TestIP_UnmarshalYAML(t *testing.T) {
 }
 
 func TestIPAndNet_UnmarshalYAML(t *testing.T) {
-	testCases := []struct {
-		cidr         string
-		wantIPAndNet *IPAndNet
-		wantErr      bool
-	}{
-		{
-			cidr: "192.168.0.1/24",
-			wantIPAndNet: &IPAndNet{
-				IP:    ParseIP("192.168.0.1"),
-				IPNet: &net.IPNet{IP: ParseIP("192.168.0.0"), Mask: net.CIDRMask(24, 32)},
+	t.Run("pointer", func(t *testing.T) {
+		testCases := []struct {
+			cidr         string
+			wantIPAndNet *IPAndNet
+			wantErr      bool
+		}{
+			{
+				cidr: "192.168.0.1/24",
+				wantIPAndNet: &IPAndNet{
+					IP:    ParseIP("192.168.0.1"),
+					IPNet: &net.IPNet{IP: ParseIP("192.168.0.0"), Mask: net.CIDRMask(24, 32)},
+				},
+				wantErr: false,
 			},
-			wantErr: false,
-		},
-		{
-			cidr: "192.168.0.2/24",
-			wantIPAndNet: &IPAndNet{
-				IP:    ParseIP("192.168.0.2"),
-				IPNet: &net.IPNet{IP: ParseIP("192.168.0.0"), Mask: net.CIDRMask(24, 32)},
+			{
+				cidr: "192.168.0.2/24",
+				wantIPAndNet: &IPAndNet{
+					IP:    ParseIP("192.168.0.2"),
+					IPNet: &net.IPNet{IP: ParseIP("192.168.0.0"), Mask: net.CIDRMask(24, 32)},
+				},
+				wantErr: false,
 			},
-			wantErr: false,
-		},
-		{
-			cidr:         "192.168.0.999/24",
-			wantIPAndNet: nil,
-			wantErr:      true,
-		},
-		{
-			cidr:         "",
-			wantIPAndNet: nil,
-			wantErr:      false, // UNmarshalYAML is not called for the empty cidr value.
-		},
-		{
-			cidr:         "foo",
-			wantIPAndNet: nil,
-			wantErr:      true,
-		},
-		{
-			cidr: "fe80::fc54:ff:febb:e3f/64",
-			wantIPAndNet: &IPAndNet{
-				IP:    ParseIP("fe80::fc54:ff:febb:e3f"),
-				IPNet: &net.IPNet{IP: ParseIP("fe80::0"), Mask: net.CIDRMask(64, 128)},
+			{
+				cidr:         "192.168.0.999/24",
+				wantIPAndNet: nil,
+				wantErr:      true,
 			},
-			wantErr: false,
-		},
-		{
-			cidr:         "fe80::fc54:ff:febb:e3f",
-			wantIPAndNet: nil,
-			wantErr:      true,
-		},
-		{
-			cidr:         "fe80::fc54:ff:febb::e3f/64",
-			wantIPAndNet: nil,
-			wantErr:      true,
-		},
-	}
+			{
+				cidr:         "",
+				wantIPAndNet: nil,
+				wantErr:      false, // UNmarshalYAML is not called for the empty cidr value.
+			},
+			{
+				cidr:         "foo",
+				wantIPAndNet: nil,
+				wantErr:      true,
+			},
+			{
+				cidr: "fe80::fc54:ff:febb:e3f/64",
+				wantIPAndNet: &IPAndNet{
+					IP:    ParseIP("fe80::fc54:ff:febb:e3f"),
+					IPNet: &net.IPNet{IP: ParseIP("fe80::0"), Mask: net.CIDRMask(64, 128)},
+				},
+				wantErr: false,
+			},
+			{
+				cidr:         "fe80::fc54:ff:febb:e3f",
+				wantIPAndNet: nil,
+				wantErr:      true,
+			},
+			{
+				cidr:         "fe80::fc54:ff:febb::e3f/64",
+				wantIPAndNet: nil,
+				wantErr:      true,
+			},
+		}
 
-	type config struct {
-		IPAndNet *IPAndNet `yaml:"cidr"`
-	}
-	for _, tc := range testCases {
-		data := []byte(fmt.Sprintf("cidr: %s", tc.cidr))
-		var cfg config
-		err := yaml.Unmarshal(data, &cfg)
-		if err != nil {
-			if tc.wantErr {
-				wantErrMsg := fmt.Sprintf("invalid CIDR address: %s", tc.cidr)
-				if err.Error() != wantErrMsg {
-					t.Errorf("cidr=%s, gotErrMsg=%s, wantErrMsg=%s", tc.cidr, err.Error(), wantErrMsg)
+		type config struct {
+			IPAndNet *IPAndNet `yaml:"cidr"`
+		}
+		for _, tc := range testCases {
+			data := []byte(fmt.Sprintf("cidr: %s", tc.cidr))
+			var cfg config
+			err := yaml.Unmarshal(data, &cfg)
+			if err != nil {
+				if tc.wantErr {
+					wantErrMsg := fmt.Sprintf("invalid CIDR address: %s", tc.cidr)
+					if err.Error() != wantErrMsg {
+						t.Errorf("cidr=%s, gotErrMsg=%s, wantErrMsg=%s", tc.cidr, err.Error(), wantErrMsg)
+					}
+				} else {
+					t.Errorf("cidr=%s, got an error, want no error", tc.cidr)
 				}
 			} else {
-				t.Errorf("cidr=%s, got an error, want no error", tc.cidr)
-			}
-		} else {
-			if tc.wantErr {
-				t.Errorf("cidr=%s, got no error, want an error", tc.cidr)
-			} else {
-				gotIPAndNet := cfg.IPAndNet
-				if !gotIPAndNet.Equal(tc.wantIPAndNet) {
-					t.Errorf("cidr=%q, gotIPAndNet=%+v, wantIPAndNet=%+v", tc.cidr, gotIPAndNet, tc.wantIPAndNet)
+				if tc.wantErr {
+					t.Errorf("cidr=%s, got no error, want an error", tc.cidr)
+				} else {
+					gotIPAndNet := cfg.IPAndNet
+					if !gotIPAndNet.Equal(tc.wantIPAndNet) {
+						t.Errorf("cidr=%q, gotIPAndNet=%+v, wantIPAndNet=%+v", tc.cidr, gotIPAndNet, tc.wantIPAndNet)
+					}
 				}
 			}
 		}
-	}
+	})
+	t.Run("value", func(t *testing.T) {
+		testCases := []struct {
+			cidr         string
+			wantIPAndNet *IPAndNet
+			wantErr      bool
+		}{
+			{
+				cidr: "192.168.0.1/24",
+				wantIPAndNet: &IPAndNet{
+					IP:    ParseIP("192.168.0.1"),
+					IPNet: &net.IPNet{IP: ParseIP("192.168.0.0"), Mask: net.CIDRMask(24, 32)},
+				},
+				wantErr: false,
+			},
+			{
+				cidr: "192.168.0.2/24",
+				wantIPAndNet: &IPAndNet{
+					IP:    ParseIP("192.168.0.2"),
+					IPNet: &net.IPNet{IP: ParseIP("192.168.0.0"), Mask: net.CIDRMask(24, 32)},
+				},
+				wantErr: false,
+			},
+			{
+				cidr:         "192.168.0.999/24",
+				wantIPAndNet: nil,
+				wantErr:      true,
+			},
+			{
+				cidr:         "",
+				wantIPAndNet: &IPAndNet{},
+				wantErr:      false, // UNmarshalYAML is not called for the empty cidr value.
+			},
+			{
+				cidr:         "foo",
+				wantIPAndNet: nil,
+				wantErr:      true,
+			},
+			{
+				cidr: "fe80::fc54:ff:febb:e3f/64",
+				wantIPAndNet: &IPAndNet{
+					IP:    ParseIP("fe80::fc54:ff:febb:e3f"),
+					IPNet: &net.IPNet{IP: ParseIP("fe80::0"), Mask: net.CIDRMask(64, 128)},
+				},
+				wantErr: false,
+			},
+			{
+				cidr:         "fe80::fc54:ff:febb:e3f",
+				wantIPAndNet: nil,
+				wantErr:      true,
+			},
+			{
+				cidr:         "fe80::fc54:ff:febb::e3f/64",
+				wantIPAndNet: nil,
+				wantErr:      true,
+			},
+		}
+
+		type config struct {
+			IPAndNet IPAndNet `yaml:"cidr"`
+		}
+		for _, tc := range testCases {
+			data := []byte(fmt.Sprintf("cidr: %s", tc.cidr))
+			var cfg config
+			err := yaml.Unmarshal(data, &cfg)
+			if err != nil {
+				if tc.wantErr {
+					wantErrMsg := fmt.Sprintf("invalid CIDR address: %s", tc.cidr)
+					if err.Error() != wantErrMsg {
+						t.Errorf("cidr=%s, gotErrMsg=%s, wantErrMsg=%s", tc.cidr, err.Error(), wantErrMsg)
+					}
+				} else {
+					t.Errorf("cidr=%s, got an error, want no error", tc.cidr)
+				}
+			} else {
+				if tc.wantErr {
+					t.Errorf("cidr=%s, got no error, want an error", tc.cidr)
+				} else {
+					gotIPAndNet := cfg.IPAndNet
+					if !gotIPAndNet.Equal(tc.wantIPAndNet) {
+						t.Errorf("cidr=%q, gotIPAndNet=%+v, wantIPAndNet=%+v", tc.cidr, gotIPAndNet, tc.wantIPAndNet)
+					}
+				}
+			}
+		}
+	})
 }

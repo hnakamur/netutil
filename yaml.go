@@ -1,6 +1,7 @@
 package netutil
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 )
@@ -101,6 +102,15 @@ func (i *IPAndNet) Equal(j *IPAndNet) bool {
 	if i == nil {
 		return j == nil
 	} else {
-		return j != nil && i.IP.Equal(j.IP) && i.IPNet.String() == j.IPNet.String()
+		return j != nil && i.IP.Equal(j.IP) && IPNetEqual(i.IPNet, j.IPNet)
+	}
+}
+
+// IPNetEqual resports whether ipNet1 and ipNet2 are the same IP network.
+func IPNetEqual(ipNet1, ipNet2 *net.IPNet) bool {
+	if ipNet1 == nil {
+		return ipNet2 == nil
+	} else {
+		return ipNet2 != nil && ipNet1.IP.Equal(ipNet2.IP) && bytes.Equal(ipNet1.Mask, ipNet2.Mask)
 	}
 }
