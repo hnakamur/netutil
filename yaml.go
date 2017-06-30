@@ -24,7 +24,7 @@ func (i *IP) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	ip := ParseIP(s)
 	if ip == nil {
-		return fmt.Errorf("invalid IP address: %s", s)
+		return fmt.Errorf("unmarshal YAML error; invalid IP address: %s", s)
 	}
 	*i = IP(ip)
 	return nil
@@ -39,7 +39,7 @@ func (i *IPAndNet) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	ipAndNet, err := ParseCIDR(s)
 	if err != nil {
-		return fmt.Errorf("invalid CIDR address: %s", s)
+		return fmt.Errorf("unmarshal YAML error; %v", err)
 	}
 	if ipAndNet != nil {
 		*i = *ipAndNet

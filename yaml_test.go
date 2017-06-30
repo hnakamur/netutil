@@ -164,7 +164,7 @@ func TestIP_UnmarshalYAML(t *testing.T) {
 		err := yaml.Unmarshal(data, &cfg)
 		if err != nil {
 			if tc.wantErr {
-				wantErrMsg := fmt.Sprintf("invalid IP address: %s", tc.addr)
+				wantErrMsg := fmt.Sprintf("unmarshal YAML error; invalid IP address: %s", tc.addr)
 				if err.Error() != wantErrMsg {
 					t.Errorf("got errMsg=%s, wantErrMsg=%s, address=%s", err.Error(), wantErrMsg, tc.addr)
 				}
@@ -253,7 +253,7 @@ func TestIPAndNet_UnmarshalYAML(t *testing.T) {
 			err := yaml.Unmarshal(data, &cfg)
 			if err != nil {
 				if tc.wantErr {
-					wantErrMsg := fmt.Sprintf("invalid CIDR address: %s", tc.cidr)
+					wantErrMsg := fmt.Sprintf("unmarshal YAML error; invalid CIDR address: %s", tc.cidr)
 					if err.Error() != wantErrMsg {
 						t.Errorf("cidr=%s, gotErrMsg=%s, wantErrMsg=%s", tc.cidr, err.Error(), wantErrMsg)
 					}
@@ -338,7 +338,7 @@ func TestIPAndNet_UnmarshalYAML(t *testing.T) {
 			err := yaml.Unmarshal(data, &cfg)
 			if err != nil {
 				if tc.wantErr {
-					wantErrMsg := fmt.Sprintf("invalid CIDR address: %s", tc.cidr)
+					wantErrMsg := fmt.Sprintf("unmarshal YAML error; invalid CIDR address: %s", tc.cidr)
 					if err.Error() != wantErrMsg {
 						t.Errorf("cidr=%s, gotErrMsg=%s, wantErrMsg=%s", tc.cidr, err.Error(), wantErrMsg)
 					}
