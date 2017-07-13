@@ -69,7 +69,7 @@ func (i IPAndNet) MarshalYAML() (interface{}, error) {
 // ParseIP parses s as an IP address using net.ParseIP(),
 // and converts the IP with IPTo4Ifv4().
 func ParseIP(s string) net.IP {
-	return IPTo4Ifv4(net.ParseIP(s))
+	return IPTo4IfV4(net.ParseIP(s))
 }
 
 // ParseCIDR parses s as a CIDR using net.ParseCIDR(),
@@ -83,15 +83,15 @@ func ParseCIDR(s string) (*IPAndNet, error) {
 		return nil, nil
 	} else {
 		return &IPAndNet{
-			IP:    IPTo4Ifv4(ip),
-			IPNet: IPNetTo4Ifv4(ipNet),
+			IP:    IPTo4IfV4(ip),
+			IPNet: IPNetTo4IfV4(ipNet),
 		}, nil
 	}
 }
 
-// IPTo4Ifv4 returns the ip.To4() if ip is a v4 address,
+// IPTo4IfV4 returns the ip.To4() if ip is a v4 address,
 // returns ip otherwise.
-func IPTo4Ifv4(ip net.IP) net.IP {
+func IPTo4IfV4(ip net.IP) net.IP {
 	if ip == nil {
 		return nil
 	}
@@ -103,13 +103,13 @@ func IPTo4Ifv4(ip net.IP) net.IP {
 	}
 }
 
-// IPNetTo4Ifv4 returns the IP network with IP replaced with IPto4If4().
-func IPNetTo4Ifv4(ipNet *net.IPNet) *net.IPNet {
+// IPNetTo4IfV4 returns the IP network with IP replaced with IPto4If4().
+func IPNetTo4IfV4(ipNet *net.IPNet) *net.IPNet {
 	if ipNet == nil {
 		return nil
 	}
 	return &net.IPNet{
-		IP:   IPTo4Ifv4(ipNet.IP),
+		IP:   IPTo4IfV4(ipNet.IP),
 		Mask: ipNet.Mask,
 	}
 }
